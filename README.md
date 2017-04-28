@@ -1,8 +1,10 @@
-Python 2.7
+Python 3.x
 Tkinter
 
 Subclass of the Entry widget with added functionality:
-Pop-up keyboard that instantiates when the Entry widget gains focus.
+Pop-up fullscreen keyboard that opens when the Entry widget gains focus.
+Created and optimized for usage on Raspberry Pi with touchscreen.
+
 
 Usage:
-tk.KeyboardEntry(parent, keysize=5, keycolor='white').pack()
+KeyboardEntry(parent, keysize=5, keycolor='white').pack()
