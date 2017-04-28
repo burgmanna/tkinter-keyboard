@@ -20,25 +20,25 @@ class _PopupKeyboard(Toplevel):
         self.attach = attach
         self.keysize = keysize
         self.keycolor = keycolor
-        self.mainframe = Frame(self)
-        self.toprow = Frame(self.mainframe)
+        self.keyframe = Frame(self)
+        self.toprow = Frame(self.keyframe)
 
         self.delete = '←'
-        self.alpha = {
+        self.keys = {
             '1' : ['q', 'w', 'e', 'r', 't', 'z', 'u', 'i', 'o', 'p', '/', self.delete],
             '2' : ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',','],
             '3' : ['shift','y', 'x', 'c', 'v', 'b', 'n', 'm','.','?','[1,2,3]'],
-            '4' : ['@','#','%','*','space','+','-','=', 'submit']
+            '4' : ['@','#','%','*','[ space ]','+','-','=', 'submit']
             } #somewhat of a workaround, maybe re-write this?
-        self.mainframe.pack()
-        self.mainframe.place(x=0,y=0)
+        self.keyframe.pack()
+        self.keyframe.place(x=0,y=0)
         self.toprow.grid(row=1)
         self.rows = {}
-        for	i in range(len(self.alpha.keys())):
-            self.rows[str(i+1)] = Frame(self.mainframe)
+        for	i in range(len(self.keys.keys())):
+            self.rows[str(i+1)] = Frame(self.keyframe)
             self.rows[str(i+1)].grid(row=i+2)
 		
-        self.keycount = max([len(n) for n in self.alpha.values()])
+        self.keycount = max([len(n) for n in self.keys.values()])
         self.keysize = math.floor(self.winfo_width() / self.keycount)
         spw = self.parent.winfo_screenwidth() - self.winfo_reqwidth() #calulate space to the sides
         self.x = math.floor(spw/2) #center keyboard
@@ -53,10 +53,10 @@ class _PopupKeyboard(Toplevel):
                                            self.parent.winfo_screenheight(),
                                            0,0))
         #self.mainframe.geometry('{}x{}+{}+{}'.format(self.winfo_width(),self.winfo_height(),self.x,self.y))
-        self.bind('<FocusOut>', lambda e: self._check_state('focusout'))
-        self.bind('<Return>', lambda e: self._check_state('return'))
+        self.bind('<FocusOut>', lambda e: self._check_kb_state('focusout'))
+        self.bind('<Return>', lambda e: self._check_kb_state('return'))
 
-    def _check_state(self, event):
+    def _check_kb_state(self, event):
         if (event == 'focusout' and not (self.focus_get() == self or self.parent.focus_get() == self.parent)) or event == 'return':
             self.parent._destroy_popup()
 
@@ -64,12 +64,12 @@ class _PopupKeyboard(Toplevel):
         self.entryfield = Entry(self.toprow)
         self.entryfield.pack(anchor=CENTER)
         self.entryfield.insert(END,self.attach.get())
-        for i in self.alpha.keys():
-            for k in self.alpha[i]:
+        for i in self.keys.keys():
+            for k in self.keys[i]:
                 multiplier = 1
                 b = Button(self.rows[i], text=k, width = self.keysize, bg=self.keycolor)
                 b.bind("<ButtonRelease-1>", self._attach_key_press)
-                b.grid(row=0, column=self.alpha[i].index(k))
+                b.grid(row=0, column=self.keys[i].index(k))
 
     def _destroy_popup(self):
         self.destroy()
@@ -79,7 +79,7 @@ class _PopupKeyboard(Toplevel):
         if k == self.delete:
             self.entryfield.delete(len(self.entryfield.get())-1, END)
         elif k == '[1,2,3]':
-            pass
+            self._showNumpad()
         elif k == '[ space ]':
             self.entryfield.insert(END, ' ')
         elif k == 'submit':
@@ -98,6 +98,10 @@ class _PopupKeyboard(Toplevel):
         if text.isupper():
             return text.lower()
         return text.upper()
+
+    def _showNumpad(self):
+        self.keyframe.grid_remove()
+        
 '''
 TO-DO: Implement Number Pad
 class _PopupNumpad(Toplevel):
@@ -150,9 +154,9 @@ class KeyboardEntry(Frame):
         self.keycolor = keycolor
         
         self.kbopen = False
-        self.entry.bind('<ButtonRelease-1>', self._check_state)
+        self.entry.bind('<ButtonRelease-1>', lambda e: self._check_entry_state('ButtonRelease-1'))
 
-    def _check_state(self):
+    def _check_entry_state(self, event):
         if not self.kbopen:
             self._call_popup()
         
