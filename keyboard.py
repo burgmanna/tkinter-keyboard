@@ -24,21 +24,21 @@ class _PopupKeyboard(Toplevel):
         self.toprow = Frame(self.keyframe)
 
         self.delete = '←'
-        self.keys = {
-            '1' : ['q', 'w', 'e', 'r', 't', 'z', 'u', 'i', 'o', 'p', '/', self.delete],
-            '2' : ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',','],
-            '3' : ['shift','y', 'x', 'c', 'v', 'b', 'n', 'm','.','?','[1,2,3]'],
-            '4' : ['@','#','%','*','[ space ]','+','-','=', 'submit']
-            } #somewhat of a workaround, maybe re-write this?
+        self.keys = [
+            ['q', 'w', 'e', 'r', 't', 'z', 'u', 'i', 'o', 'p', '/', self.delete],
+            ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',','],
+            ['shift','y', 'x', 'c', 'v', 'b', 'n', 'm','.','?','[1,2,3]'],
+            ['@','#','%','*','[ space ]','+','-','=', 'submit']
+            ]
         self.keyframe.pack()
         self.keyframe.place(x=0,y=0)
         self.toprow.grid(row=1)
         self.rows = {}
         for	i in range(len(self.keys.keys())):
-            self.rows[str(i+1)] = Frame(self.keyframe)
-            self.rows[str(i+1)].grid(row=i+2)
+            self.rows[i] = Frame(self.keyframe)
+            self.rows[i].grid(row=i+2)
 		
-        self.keycount = max([len(n) for n in self.keys.values()])
+        self.keycount = max([len(n) for n in self.keys])
         self.keysize = math.floor(self.winfo_width() / self.keycount)
         spw = self.parent.winfo_screenwidth() - self.winfo_reqwidth() #calulate space to the sides
         self.x = math.floor(spw/2) #center keyboard
@@ -64,12 +64,12 @@ class _PopupKeyboard(Toplevel):
         self.entryfield = Entry(self.toprow)
         self.entryfield.pack(anchor=CENTER)
         self.entryfield.insert(END,self.attach.get())
-        for i in self.keys.keys():
-            for k in self.keys[i]:
+        for row in self.keys:
+            for key in row:
                 multiplier = 1
-                b = Button(self.rows[i], text=k, width = self.keysize, bg=self.keycolor)
+                b = Button(self.rows[i], text=key, width = self.keysize, bg=self.keycolor)
                 b.bind("<ButtonRelease-1>", self._attach_key_press)
-                b.grid(row=0, column=self.keys[i].index(k))
+                b.grid(row=0, column=row.index(key))
 
     def _destroy_popup(self):
         self.destroy()
@@ -87,8 +87,8 @@ class _PopupKeyboard(Toplevel):
             self.attach.insert(END, self.entryfield.get())
             self.parent._destroy_popup()
         elif k == 'shift':
-            for r in self.rows.keys():
-                for btn in self.rows[r].winfo_children():
+            for row in self.rows:
+                for btn in row.winfo_children():
                     if len(btn['text']) == 1:
                         btn['text'] = self._changeCapital(btn['text'])
         else:
