@@ -11,7 +11,7 @@ class _PopupKeyboard(Toplevel):
     another widget. Only the Entry widget has a subclass in this version.
     '''
     
-    def __init__(self, parent, attach, keycolor, keysize=5):
+    def __init__(self, parent, attach, keycolor, keysize=0):
         Toplevel.__init__(self, takefocus=0)
         
         self.overrideredirect(True)
@@ -40,11 +40,14 @@ class _PopupKeyboard(Toplevel):
             self.rows[i].grid(row=i+2)
 		
         self.keycount = max([len(n) for n in self.keys])
-        self.keysize = math.floor(self.winfo_width() / self.keycount)
+        if self.keysize == 0:
+            self.keysize = math.floor(self.winfo_width() / self.keycount)
         spw = self.parent.winfo_screenwidth() - self.winfo_reqwidth() #calulate space to the sides
-        self.x = math.floor(spw/2) #center keyboard
+        if spw > 0:
+            self.x = math.floor(spw/2) #center keyboard
         sph = self.parent.winfo_screenheight() - self.winfo_reqheight()
-        self.y = math.floor(sph/2)
+        if sph > 0:
+            self.y = math.floor(sph/2)
 		
         
         self._init_keys()
@@ -80,9 +83,9 @@ class _PopupKeyboard(Toplevel):
     def _attach_key_press(self, btn):
         k = btn.widget['text']
         if k == self.delete:
-            self.entryfield.delete(len(self.entryfield.get())-1, END)
+            self.entryfield.delete(self.entryfield.index(INSERT)-1, INSERT)
         elif k == '[ space ]':
-            self.entryfield.insert(END, ' ')
+            self.entryfield.insert(INSERT, ' ')
         elif k == 'submit':
             self.attach.delete(0,END)
             self.attach.insert(END, self.entryfield.get())
@@ -93,7 +96,7 @@ class _PopupKeyboard(Toplevel):
                     if len(btn['text']) == 1:
                         btn['text'] = self._changeCapital(btn['text'])
         else:
-            self.entryfield.insert(END, k)
+            self.entryfield.insert(INSERT, k)
 
     def _changeCapital(self, text):
         if text.isupper():
@@ -111,7 +114,7 @@ class KeyboardEntry(Frame):
     KeyboardEntry(parent, keysize=6, keycolor='white').pack()
     '''
     
-    def __init__(self, parent, keysize=5, keycolor='gray', *args, **kwargs):
+    def __init__(self, parent, keysize=0, keycolor='gray', *args, **kwargs):
         Frame.__init__(self, parent)
         self.parent = parent
         
@@ -143,6 +146,6 @@ class KeyboardEntry(Frame):
 
 def test():  
     root = Tk()
-    KeyboardEntry(root, keysize=6, keycolor='white').pack()
+    KeyboardEntry(root, keycolor='white').pack()
     KeyboardEntry(root).pack()
     root.mainloop()
