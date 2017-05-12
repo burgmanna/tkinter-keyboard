@@ -1,6 +1,6 @@
 ﻿'''Popup Keyboard is a module to be used with Python's Tkinter library
-It subclasses the Entry widget as KeyboardEntry to make a pop-up
-keyboard appear when the widget gains focus. Still early in development.
+It subclasses the Entry widget as KeyboardEntry to make a fullscreen pop-up
+keyboard appear as the widget gains focus. Development in progress and focused to use with small touchscreens.
 '''
 
 from tkinter import *
@@ -25,16 +25,17 @@ class _PopupKeyboard(Toplevel):
 
         self.delete = '←'
         self.keys = [
+            ([i for i in range(0,10)]),
             ['q', 'w', 'e', 'r', 't', 'z', 'u', 'i', 'o', 'p', '/', self.delete],
             ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',','],
-            ['shift','y', 'x', 'c', 'v', 'b', 'n', 'm','.','?','[1,2,3]'],
+            ['shift','y', 'x', 'c', 'v', 'b', 'n', 'm','.','?'],
             ['@','#','%','*','[ space ]','+','-','=', 'submit']
             ]
         self.keyframe.pack()
         self.keyframe.place(x=0,y=0)
         self.toprow.grid(row=1)
         self.rows = {}
-        for	i in range(len(self.keys.keys())):
+        for	i in range(len(self.keys)):
             self.rows[i] = Frame(self.keyframe)
             self.rows[i].grid(row=i+2)
 		
@@ -64,12 +65,14 @@ class _PopupKeyboard(Toplevel):
         self.entryfield = Entry(self.toprow)
         self.entryfield.pack(anchor=CENTER)
         self.entryfield.insert(END,self.attach.get())
+        i = 0
         for row in self.keys:
             for key in row:
                 multiplier = 1
                 b = Button(self.rows[i], text=key, width = self.keysize, bg=self.keycolor)
                 b.bind("<ButtonRelease-1>", self._attach_key_press)
                 b.grid(row=0, column=row.index(key))
+            i = i+1
 
     def _destroy_popup(self):
         self.destroy()
@@ -78,8 +81,6 @@ class _PopupKeyboard(Toplevel):
         k = btn.widget['text']
         if k == self.delete:
             self.entryfield.delete(len(self.entryfield.get())-1, END)
-        elif k == '[1,2,3]':
-            self._showNumpad()
         elif k == '[ space ]':
             self.entryfield.insert(END, ' ')
         elif k == 'submit':
@@ -98,40 +99,7 @@ class _PopupKeyboard(Toplevel):
         if text.isupper():
             return text.lower()
         return text.upper()
-
-    def _showNumpad(self):
-        self.keyframe.grid_remove()
         
-'''
-TO-DO: Implement Number Pad
-class _PopupNumpad(Toplevel):
-    def __init__(self, x, y, keycolor='gray', keysize=5):
-        Toplevel.__init__(self, takefocus=0)
-        
-        self.overrideredirect(True)
-        self.attributes('-alpha',0.85)
-
-        self.numframe = Frame(self)
-        self.numframe.grid(row=1, column=1)
-
-        self.__init_nums()
-
-        self.update_idletasks()
-        self.geometry('{}x{}+{}+{}'.format(self.winfo_width(),
-                                           self.winfo_height(),
-                                           self.x,self.y))
-
-    def __init_nums(self):
-        i=0
-        for num in ['7','4','1','8','5','2','9','6','3']:
-            print num
-            Button(self.numframe,
-                   text=num,
-                   width=int(self.keysize/2),
-                   bg=self.keycolor,
-                   command=lambda num=num: self.__attach_key_press(num)).grid(row=i%3, column=i/3)
-            i+=1
-'''
 
 class KeyboardEntry(Frame):
     '''An extension/subclass of the Tkinter Entry widget, capable
