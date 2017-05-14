@@ -5,13 +5,14 @@ keyboard appear as the widget gains focus. Development in progress and focused t
 
 from tkinter import *
 import math
+import abc
 
 class _PopupKeyboard(Toplevel):
     '''A Toplevel instance that displays a keyboard that is attached to
     another widget. Only the Entry widget has a subclass in this version.
     '''
     
-    def __init__(self, parent, attach, keycolor, keysize=0):
+    def __init__(self, parent, attach, keycolor, keysize, validator):
         Toplevel.__init__(self, takefocus=0)
         
         self.overrideredirect(True)
@@ -39,6 +40,10 @@ class _PopupKeyboard(Toplevel):
             self.rows[i] = Frame(self.keyframe)
             self.rows[i].grid(row=i+2)
 		
+        if validator and isinstance(validator, InputValidator):
+            self.validator = validator
+        else:
+            self.validator = None
         self.keycount = max([len(n) for n in self.keys])
         if self.keysize == 0:
             self.keysize = math.floor(self.winfo_width() / self.keycount)
@@ -87,8 +92,10 @@ class _PopupKeyboard(Toplevel):
         elif k == '[ space ]':
             self.entryfield.insert(INSERT, ' ')
         elif k == 'submit':
-            self.attach.delete(0,END)
-            self.attach.insert(END, self.entryfield.get())
+            if self.validator:
+                if not self.validator.validate(self.entryfield.get()):
+                    self.entryfield.configure(background = 'tomato2')
+                    return
             self.parent._destroy_popup()
         elif k == 'shift':
             for row in self.rows:
@@ -114,16 +121,16 @@ class KeyboardEntry(Frame):
     KeyboardEntry(parent, keysize=6, keycolor='white').pack()
     '''
     
-    def __init__(self, parent, keysize=0, keycolor='gray', *args, **kwargs):
+    def __init__(self, parent, keysize=0, keycolor='gray', validator=None, *args, **kwargs):
         Frame.__init__(self, parent)
         self.parent = parent
         
         self.entry = Entry(self, *args, **kwargs)
         self.entry.pack()
-
         self.keysize = keysize
         self.keycolor = keycolor
         
+        self.validator = validator
         self.kbopen = False
         self.entry.bind('<ButtonRelease-1>', lambda e: self._check_entry_state('ButtonRelease-1'))
 
@@ -135,7 +142,8 @@ class KeyboardEntry(Frame):
         self.kb = _PopupKeyboard(attach=self.entry,
                                  parent=self,
                                  keysize=self.keysize,
-                                 keycolor=self.keycolor)
+                                 keycolor=self.keycolor	,
+                                 validator=self.validator)
         self.kbopen = True
 
     def _destroy_popup(self):
@@ -144,8 +152,25 @@ class KeyboardEntry(Frame):
         self.kb._destroy_popup()
         self.kbopen = False
 
+class InputValidator(object, metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def validate(text):
+        raise NotImplementedError('for usage please implement validate()')
+
+import re
+class RegexValidator(InputValidator):
+    presets = {
+    "ip": r"\b(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\b", #credits to: http://www.regular-expressions.info/ip.html
+    "mail": r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", #credits to: http://emailregex.com/
+    "url": r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+" #credits to: http://urlregex.com/
+    }
+    def __init__(self, regex):
+        self.rege = re.compile(regex)
+    def validate(self, text):
+        return self.rege.match(text)
+		
 def test():  
     root = Tk()
     KeyboardEntry(root, keycolor='white').pack()
-    KeyboardEntry(root).pack()
+    KeyboardEntry(root, validator=RegexValidator(RegexValidator.presets["mail"])).pack()
     root.mainloop()
