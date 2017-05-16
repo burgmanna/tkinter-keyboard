@@ -12,15 +12,13 @@ class _PopupKeyboard(Toplevel):
     another widget. Only the Entry widget has a subclass in this version.
     '''
     
-    def __init__(self, parent, attach, keycolor, keysize, validator):
+    def __init__(self, parent, attach, buttonsettings, entrysettings, validator):
         Toplevel.__init__(self, takefocus=0)
         
         self.overrideredirect(True)
         self.attributes('-alpha',0.95)
         self.parent = parent
         self.attach = attach
-        self.keysize = keysize
-        self.keycolor = keycolor
         self.keyframe = Frame(self)
         self.toprow = Frame(self.keyframe)
 
@@ -33,34 +31,36 @@ class _PopupKeyboard(Toplevel):
             ['@','#','%','*','[ space ]','+','-','=', 'submit']
             ]
         self.keyframe.pack()
-        self.keyframe.place(x=0,y=0)
         self.toprow.grid(row=1)
         self.rows = {}
         for	i in range(len(self.keys)):
             self.rows[i] = Frame(self.keyframe)
             self.rows[i].grid(row=i+2)
+            print(type(self.rows[i]))
 		
         if validator and isinstance(validator, InputValidator):
             self.validator = validator
         else:
             self.validator = None
         self.keycount = max([len(n) for n in self.keys])
-        if self.keysize == 0:
-            self.keysize = math.floor(self.winfo_width() / self.keycount)
+        ks = math.floor(self.winfo_width() / self.keycount)
+        if not "width" in buttonsettings or buttonsettings["width"] > ks:
+            buttonsettings["width"] = ks
         spw = self.parent.winfo_screenwidth() - self.winfo_reqwidth() #calulate space to the sides
         if spw > 0:
             self.x = math.floor(spw/2) #center keyboard
         sph = self.parent.winfo_screenheight() - self.winfo_reqheight()
         if sph > 0:
             self.y = math.floor(sph/2)
-		
-        
+        self.keyframe.place(x=self.x,y=self.y)
+        self.buttonsettings = buttonsettings
+        self.entrysettings = entrysettings
         self._init_keys()
 
         self.update_idletasks()
         self.geometry('{}x{}+{}+{}'.format(self.parent.winfo_screenwidth(),
                                            self.parent.winfo_screenheight(),
-                                           0,0))
+                                           0, 0))
         #self.mainframe.geometry('{}x{}+{}+{}'.format(self.winfo_width(),self.winfo_height(),self.x,self.y))
         self.bind('<FocusOut>', lambda e: self._check_kb_state('focusout'))
         self.bind('<Return>', lambda e: self._check_kb_state('return'))
@@ -70,14 +70,14 @@ class _PopupKeyboard(Toplevel):
             self.parent._destroy_popup()
 
     def _init_keys(self):
-        self.entryfield = Entry(self.toprow)
+        self.entryfield = Entry(self.toprow, **self.entrysettings)
         self.entryfield.pack(anchor=CENTER)
         self.entryfield.insert(END,self.attach.get())
         i = 0
         for row in self.keys:
             for key in row:
                 multiplier = 1
-                b = Button(self.rows[i], text=key, width = self.keysize, bg=self.keycolor)
+                b = Button(self.rows[i], text=key, **self.buttonsettings)
                 b.bind("<ButtonRelease-1>", self._attach_key_press)
                 b.grid(row=0, column=row.index(key))
             i = i+1
@@ -99,6 +99,7 @@ class _PopupKeyboard(Toplevel):
             self.parent._destroy_popup()
         elif k == 'shift':
             for row in self.rows:
+                print(type(row))
                 for btn in row.winfo_children():
                     if len(btn['text']) == 1:
                         btn['text'] = self._changeCapital(btn['text'])
@@ -121,14 +122,13 @@ class KeyboardEntry(Frame):
     KeyboardEntry(parent, keysize=6, keycolor='white').pack()
     '''
     
-    def __init__(self, parent, keysize=0, keycolor='gray', validator=None, *args, **kwargs):
+    def __init__(self, parent, buttonsettings, entrysettings, validator=None, *args, **kwargs):
         Frame.__init__(self, parent)
         self.parent = parent
-        
         self.entry = Entry(self, *args, **kwargs)
         self.entry.pack()
-        self.keysize = keysize
-        self.keycolor = keycolor
+        self.buttonsettings = buttonsettings
+        self.entrysettings = entrysettings
         
         self.validator = validator
         self.kbopen = False
@@ -141,8 +141,8 @@ class KeyboardEntry(Frame):
     def _call_popup(self):
         self.kb = _PopupKeyboard(attach=self.entry,
                                  parent=self,
-                                 keysize=self.keysize,
-                                 keycolor=self.keycolor	,
+                                 buttonsettings= self.buttonsettings,
+                                 entrysettings = self.buttonsettings,
                                  validator=self.validator)
         self.kbopen = True
 
@@ -171,6 +171,6 @@ class RegexValidator(InputValidator):
 		
 def test():  
     root = Tk()
-    KeyboardEntry(root, keycolor='white').pack()
-    KeyboardEntry(root, validator=RegexValidator(RegexValidator.presets["mail"])).pack()
+    KeyboardEntry(root, {},{}).pack()
+    KeyboardEntry(root, {'background':'gray'},{}, validator=RegexValidator(RegexValidator.presets["mail"])).pack()
     root.mainloop()
