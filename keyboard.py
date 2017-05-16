@@ -64,7 +64,7 @@ class _PopupKeyboard(Toplevel):
         #self.mainframe.geometry('{}x{}+{}+{}'.format(self.winfo_width(),self.winfo_height(),self.x,self.y))
         self.bind('<FocusOut>', lambda e: self._check_kb_state('focusout'))
         self.bind('<Return>', lambda e: self._check_kb_state('return'))
-
+        
     def _check_kb_state(self, event):
         if (event == 'focusout' and not (self.focus_get() == self or self.parent.focus_get() == self.parent)) or event == 'return':
             self.parent._destroy_popup()
@@ -73,6 +73,7 @@ class _PopupKeyboard(Toplevel):
         self.entryfield = Entry(self.toprow, **self.entrysettings)
         self.entryfield.pack(anchor=CENTER)
         self.entryfield.insert(END,self.attach.get())
+        self.entryfield.focus_set()
         i = 0
         for row in self.keys:
             for key in row:
@@ -151,6 +152,10 @@ class KeyboardEntry(Frame):
         self.entry.insert(0,self.kb.entryfield.get())
         self.kb._destroy_popup()
         self.kbopen = False
+		
+    @property
+    def text(self):
+        return self.entry.get()
 
 class InputValidator(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
