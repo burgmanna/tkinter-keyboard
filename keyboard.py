@@ -36,7 +36,6 @@ class _PopupKeyboard(Toplevel):
         for	i in range(len(self.keys)):
             self.rows[i] = Frame(self.keyframe)
             self.rows[i].grid(row=i+2)
-            print(type(self.rows[i]))
 		
         if validator and isinstance(validator, InputValidator):
             self.validator = validator
@@ -52,7 +51,7 @@ class _PopupKeyboard(Toplevel):
         sph = self.parent.winfo_screenheight() - self.winfo_reqheight()
         if sph > 0:
             self.y = math.floor(sph/2)
-        self.keyframe.place(x=self.x,y=self.y)
+        self.keyframe.place(x=0,y=self.y)
         self.buttonsettings = buttonsettings
         self.entrysettings = entrysettings
         self._init_keys()
@@ -62,7 +61,7 @@ class _PopupKeyboard(Toplevel):
                                            self.parent.winfo_screenheight(),
                                            0, 0))
         #self.mainframe.geometry('{}x{}+{}+{}'.format(self.winfo_width(),self.winfo_height(),self.x,self.y))
-        self.bind('<FocusOut>', lambda e: self._check_kb_state('focusout'))
+        #self.bind('<FocusOut>', lambda e: self._check_kb_state('focusout'))
         self.bind('<Return>', lambda e: self._check_kb_state('return'))
         
     def _check_kb_state(self, event):
@@ -100,7 +99,6 @@ class _PopupKeyboard(Toplevel):
             self.parent._destroy_popup()
         elif k == 'shift':
             for row in self.rows:
-                print(type(row))
                 for btn in row.winfo_children():
                     if len(btn['text']) == 1:
                         btn['text'] = self._changeCapital(btn['text'])
@@ -140,6 +138,7 @@ class KeyboardEntry(Frame):
             self._call_popup()
         
     def _call_popup(self):
+        print("Keyboard opened", flush=True)
         self.kb = _PopupKeyboard(attach=self.entry,
                                  parent=self,
                                  buttonsettings= self.buttonsettings,
@@ -148,6 +147,7 @@ class KeyboardEntry(Frame):
         self.kbopen = True
 
     def _destroy_popup(self):
+        print("Keyboard destroyed", flush=True)
         self.entry.delete(0,END)
         self.entry.insert(0,self.kb.entryfield.get())
         self.kb._destroy_popup()
