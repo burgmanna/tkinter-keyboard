@@ -6,6 +6,7 @@ keyboard appear as the widget gains focus. Development in progress and focused t
 from tkinter import *
 import math
 import abc
+import inspect
 
 class _PopupKeyboard(Toplevel):
 	'''A Toplevel instance that displays a keyboard that is attached to
@@ -118,10 +119,10 @@ class KeyboardEntry(Frame):
 	the widget
 
 	Usage:
-	KeyboardEntry(parent, keysize=6, keycolor='white').pack()
+	KeyboardEntry(parent, {"background":'white'},{}).pack()
 	'''
 	
-	def __init__(self, parent, buttonsettings, entrysettings, validator=None, *args, **kwargs):
+	def __init__(self, parent, buttonsettings, entrysettings, validator=None, onSubmit=None, *args, **kwargs):
 		Frame.__init__(self, parent)
 		self.parent = parent
 		self.entry = Entry(self, *args, **kwargs)
@@ -130,6 +131,7 @@ class KeyboardEntry(Frame):
 		self.entrysettings = entrysettings
 		
 		self.validator = validator
+		self.onSubmit = onSubmit
 		self.kbopen = False
 		self.entry.bind('<ButtonRelease-1>', lambda e: self._check_entry_state('ButtonRelease-1'))
 
@@ -152,6 +154,8 @@ class KeyboardEntry(Frame):
 		self.entry.insert(0,self.kb.entryfield.get())
 		self.kb._destroy_popup()
 		self.kbopen = False
+		if self.onSubmit and inspect.isfunction(self.onSubmit):
+			self.onSubmit(self.text)
 		
 	@property
 	def text(self):
