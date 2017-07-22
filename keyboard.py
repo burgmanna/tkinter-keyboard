@@ -24,8 +24,10 @@ class _PopupKeyboard(Toplevel):
 		self.toprow = Frame(self.keyframe)
 
 		self.delete = '←'
+		nums = [i for i in range(1,10)]
+		nums.append(0)
 		self.keys = [
-			([i for i in range(0,10)]),
+			nums,
 			['q', 'w', 'e', 'r', 't', 'z', 'u', 'i', 'o', 'p', '/', self.delete],
 			['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',','],
 			['shift','y', 'x', 'c', 'v', 'b', 'n', 'm','.','?'],
