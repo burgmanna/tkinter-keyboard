@@ -15,7 +15,7 @@ class _PopupKeyboard(Toplevel):
 	
 	def __init__(self, parent, attach, buttonsettings, entrysettings, validator):
 		Toplevel.__init__(self, takefocus=0)
-		
+
 		self.overrideredirect(True)
 		self.attributes('-alpha',0.95)
 		self.parent = parent
@@ -24,8 +24,10 @@ class _PopupKeyboard(Toplevel):
 		self.toprow = Frame(self.keyframe)
 
 		self.delete = '←'
+		#append 0 to this array to get placed on right side later
 		nums = [i for i in range(1,10)]
 		nums.append(0)
+		#define key layout
 		self.keys = [
 			nums,
 			['q', 'w', 'e', 'r', 't', 'z', 'u', 'i', 'o', 'p', '/', self.delete],
@@ -116,7 +118,7 @@ class _PopupKeyboard(Toplevel):
 
 class KeyboardEntry(Frame):
 	'''An extension/subclass of the Tkinter Entry widget, capable
-	of accepting all existing args, plus a keysize and keycolor option.
+	of accepting all existing args, plus args for each keyboard component (entry field and buttons) given as dictionaries
 	Will pop up an instance of _PopupKeyboard when focus moves into
 	the widget
 
@@ -129,6 +131,7 @@ class KeyboardEntry(Frame):
 		self.parent = parent
 		self.entry = Entry(self, *args, **kwargs)
 		self.entry.pack()
+		#
 		self.buttonsettings = buttonsettings
 		self.entrysettings = entrysettings
 		
